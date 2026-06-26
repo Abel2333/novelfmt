@@ -11,13 +11,12 @@
 #include <vector>
 
 #include "CLI/CLI.hpp"
-#include <re2/re2.h>
-#include <unicode/brkiter.h>
-#include <unicode/errorcode.h>
-#include <unicode/locid.h>
-#include <unicode/normalizer2.h>
-#include <unicode/ubrk.h>
-#include <unicode/unistr.h>
+#include "re2/re2.h"
+#include "unicode/brkiter.h"
+#include "unicode/locid.h"
+#include "unicode/normalizer2.h"
+#include "unicode/ubrk.h"
+#include "unicode/unistr.h"
 
 namespace {
 
