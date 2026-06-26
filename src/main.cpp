@@ -1,16 +1,12 @@
-#include <algorithm>
-#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
-#include <fstream>
-#include <ios>
 #include <iostream>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include "CLI/CLI.hpp"
+#include "cli/parse_cli.hpp"
+#include "io/read_file.hpp"
 #include "re2/re2.h"
 #include "unicode/brkiter.h"
 #include "unicode/locid.h"
@@ -18,9 +14,11 @@
 #include "unicode/ubrk.h"
 #include "unicode/unistr.h"
 
+#include <fmt/base.h>
+
 namespace {
 
-[[noreturn]] void Fail(const std::string &message, UErrorCode status = U_ZERO_ERROR) {
+[[noreturn]] void Fail(const std::string& message, UErrorCode status = U_ZERO_ERROR) {
     std::cerr << message;
     if (U_FAILURE(status)) {
         std::cerr << ": " << u_errorName(status);
@@ -29,9 +27,9 @@ namespace {
     std::exit(1);
 }
 
-std::string NormalizeToNfc(const std::string &utf8_text) {
+std::string NormalizeToNfc(const std::string& utf8_text) {
     UErrorCode status = U_ZERO_ERROR;
-    const icu::Normalizer2 *normalizer = icu::Normalizer2::getNFCInstance(status);
+    const icu::Normalizer2* normalizer = icu::Normalizer2::getNFCInstance(status);
     if (U_FAILURE(status) || normalizer == nullptr) {
         Fail("Failed to create ICU normalizer", status);
     }
@@ -48,7 +46,7 @@ std::string NormalizeToNfc(const std::string &utf8_text) {
     return normalized_utf8;
 }
 
-std::vector<std::string> SegmentWordsZh(const std::string &utf8_text) {
+std::vector<std::string> SegmentWordsZh(const std::string& utf8_text) {
     UErrorCode status = U_ZERO_ERROR;
     std::unique_ptr<icu::BreakIterator> iterator(
         icu::BreakIterator::createWordInstance(icu::Locale::getChinese(), status));
@@ -74,7 +72,7 @@ std::vector<std::string> SegmentWordsZh(const std::string &utf8_text) {
     return words;
 }
 
-std::vector<std::string> FindChapterTitles(const std::string &utf8_text) {
+std::vector<std::string> FindChapterTitles(const std::string& utf8_text) {
     static const re2::RE2 chapter_regex(
         R"((?:^|\n)(第[0-9一二三四五六七八九十百千两〇零]+章[^\n]*))");
     if (!chapter_regex.ok()) {
@@ -92,50 +90,31 @@ std::vector<std::string> FindChapterTitles(const std::string &utf8_text) {
 
 } // namespace
 
-int main(int argc, char **argv) {
-    CLI::App app{"novelfmt - novel format tools"};
-    app.set_version_flag("--version", "0.1.0");
+int main(int argc, char* argv[]) {
+    auto options = parse_cli(argc, argv);
 
-    std::string input_path;
-    app.add_option("input", input_path, "input file location")
-        ->required()
-        ->check(CLI::ExistingFile);
+    auto content = read_file(options.input_path);
 
-    CLI11_PARSE(app, argc, argv);
-
-    const auto real_input_path = std::filesystem::path{input_path};
-    const auto file_size = std::filesystem::file_size(real_input_path);
-
-    if (file_size == 0)
+    if (!content.has_value()) {
+        fmt::print("The file {} is empty", options.input_path.string());
         return 0;
-
-    std::ifstream file(real_input_path, std::ios::binary);
-    if (!file) {
-        throw std::runtime_error("cannot open file: " + real_input_path.string());
     }
 
-    std::string content(file_size, '\0');
-    file.read(content.data(), static_cast<std::streamsize>(file_size));
-    if (file.fail() && !file.eof()) {
-        throw std::runtime_error("error reading file: " + real_input_path.string());
-    }
+    auto content_value = content.value();
 
-    content.resize(static_cast<std::size_t>(file.gcount()));
-    content.erase(std::remove(content.begin(), content.end(), '\r'), content.end());
-
-    const std::string normalized = NormalizeToNfc(content);
+    const std::string normalized = NormalizeToNfc(content_value);
     const std::vector<std::string> chapters = FindChapterTitles(normalized);
     const std::vector<std::string> words = SegmentWordsZh(normalized);
 
     std::cout << "Normalized text:\n" << normalized << "\n\n";
 
     std::cout << "Detected chapter titles:\n";
-    for (const auto &chapter : chapters) {
+    for (const auto& chapter : chapters) {
         std::cout << "  - " << chapter << '\n';
     }
 
     std::cout << "\nSegmented words:\n";
-    for (const auto &word : words) {
+    for (const auto& word : words) {
         std::cout << "  [" << word << "]\n";
     }
 

@@ -11,8 +11,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(ICU REQUIRED COMPONENTS uc i18n)
 find_package(re2 CONFIG REQUIRED)
 find_package(CLI11 CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 
 add_executable(novelfmt
+    src/cli/parse_cli.cpp
+    src/io/read_file.cpp
+    src/io/write_file.cpp
     src/main.cpp
 )
 
@@ -22,6 +26,7 @@ target_link_libraries(novelfmt
         ICU::i18n
         re2::re2
         CLI11::CLI11
+        fmt::fmt
 )
 
 if(MSVC)

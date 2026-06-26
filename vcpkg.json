@@ -4,8 +4,9 @@
   "version-string": "0.1.0",
   "description": "Chinese text formatting and matching experiments.",
   "dependencies": [
+    "cli11",
     "icu",
     "re2",
-    "cli11"
+    "fmt"
   ]
 }
