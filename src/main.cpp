@@ -1,9 +1,16 @@
+#include <algorithm>
+#include <cstddef>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <ios>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "CLI/CLI.hpp"
 #include <re2/re2.h>
 #include <unicode/brkiter.h>
 #include <unicode/errorcode.h>
@@ -86,15 +93,38 @@ std::vector<std::string> FindChapterTitles(const std::string &utf8_text) {
 
 } // namespace
 
-int main() {
-    const std::string sample_text = "第1章 初到京城\n"
-                                    "林黛玉进了贾府，说：“这院子好生气派。”\n"
-                                    "宝玉笑道：“妹妹可曾读书？”\n"
-                                    "\n"
-                                    "第2章 夜读\n"
-                                    "窗外下着雨，屋里只听见翻书声。";
+int main(int argc, char **argv) {
+    CLI::App app{"novelfmt - novel format tools"};
+    app.set_version_flag("--version", "0.1.0");
 
-    const std::string normalized = NormalizeToNfc(sample_text);
+    std::string input_path;
+    app.add_option("input", input_path, "input file location")
+        ->required()
+        ->check(CLI::ExistingFile);
+
+    CLI11_PARSE(app, argc, argv);
+
+    const auto real_input_path = std::filesystem::path{input_path};
+    const auto file_size = std::filesystem::file_size(real_input_path);
+
+    if (file_size == 0)
+        return 0;
+
+    std::ifstream file(real_input_path, std::ios::binary);
+    if (!file) {
+        throw std::runtime_error("cannot open file: " + real_input_path.string());
+    }
+
+    std::string content(file_size, '\0');
+    file.read(content.data(), static_cast<std::streamsize>(file_size));
+    if (file.fail() && !file.eof()) {
+        throw std::runtime_error("error reading file: " + real_input_path.string());
+    }
+
+    content.resize(static_cast<std::size_t>(file.gcount()));
+    content.erase(std::remove(content.begin(), content.end(), '\r'), content.end());
+
+    const std::string normalized = NormalizeToNfc(content);
     const std::vector<std::string> chapters = FindChapterTitles(normalized);
     const std::vector<std::string> words = SegmentWordsZh(normalized);
 

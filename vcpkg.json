@@ -5,6 +5,7 @@
   "description": "Chinese text formatting and matching experiments.",
   "dependencies": [
     "icu",
-    "re2"
+    "re2",
+    "cli11"
   ]
 }
