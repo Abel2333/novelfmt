@@ -1,5 +1,6 @@
 #include "parse_cli.hpp"
 
+#include <cstdlib>
 #include <filesystem>
 #include <string>
 
@@ -21,8 +22,14 @@ Options parse_cli(int argc, char* argv[]) {
     app.add_flag("--in-place", in_place, "rewrite the input file");
     app.add_flag("--dry-run", dry_run, "parse and report without writing output");
 
-    app.parse(argc, argv);
+    // use Try-Catch to show the help menu when parse failed
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError& e) {
+        std::exit(app.exit(e));
+    }
 
+    // Build final Options for other parts of this project
     Options options;
     options.input_path = std::filesystem::path{input_path};
     if (!output_path.empty()) {

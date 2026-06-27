@@ -15,10 +15,15 @@ find_package(fmt CONFIG REQUIRED)
 
 add_executable(novelfmt
     src/cli/parse_cli.cpp
+    src/format/heading.cpp
+    src/format/normalize.cpp
+    src/format/pipeline.cpp
     src/io/read_file.cpp
     src/io/write_file.cpp
     src/main.cpp
 )
+
+target_include_directories(novelfmt PRIVATE src)
 
 target_link_libraries(novelfmt
     PRIVATE
