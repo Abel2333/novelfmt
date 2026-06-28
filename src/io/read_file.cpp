@@ -1,6 +1,5 @@
 #include "read_file.hpp"
 
-#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -28,7 +27,5 @@ std::optional<std::string> read_file(const std::filesystem::path& path) {
     }
 
     content.resize(static_cast<std::size_t>(file.gcount()));
-    content.erase(std::remove(content.begin(), content.end(), '\r'), content.end());
-
     return content;
 }

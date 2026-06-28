@@ -10,7 +10,7 @@
 #include <unicode/urename.h>
 #include <unicode/utypes.h>
 
-std::string normalize_to_nfc(const std::string_view utf8_text) {
+void normalize_to_nfc(std::string_view utf8_text, std::string& normalized_text) {
     UErrorCode status = U_ZERO_ERROR;
     const icu::Normalizer2* normalizer = icu::Normalizer2::getNFCInstance(status);
 
@@ -26,8 +26,5 @@ std::string normalize_to_nfc(const std::string_view utf8_text) {
         novelfmt::Throw("Failed to normalize UTF-8 text: {}", u_errorName(status));
     }
 
-    std::string normalized_utf8;
-    normalized.toUTF8String(normalized_utf8);
-
-    return normalized_utf8;
+    normalized.toUTF8String(normalized_text);
 }

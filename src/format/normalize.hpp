@@ -3,4 +3,4 @@
 #include <string>
 #include <string_view>
 
-std::string normalize_to_nfc(const std::string_view utf8_text);
+void normalize_to_nfc(std::string_view utf8_text, std::string& normalized_text);

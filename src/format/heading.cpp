@@ -22,8 +22,10 @@ std::optional<std::string> format_heading(std::string_view raw, HeadingMode mode
         return std::nullopt;
     }
 
+    const auto prefix = (mode == HeadingMode::ChapterOnly) ? "##" : "###";
+
     if (title.empty()) {
-        return fmt::format("## {}", marker);
+        return fmt::format("{} {}", prefix, marker);
     }
-    return fmt::format("## {} {}", marker, title);
+    return fmt::format("{} {} {}", prefix, marker, title);
 }

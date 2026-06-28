@@ -17,7 +17,9 @@ add_executable(novelfmt
     src/cli/parse_cli.cpp
     src/format/heading.cpp
     src/format/normalize.cpp
+    src/format/sanitize.cpp
     src/format/pipeline.cpp
+    src/format/formatter.cpp
     src/io/read_file.cpp
     src/io/write_file.cpp
     src/main.cpp
