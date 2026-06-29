@@ -4,4 +4,8 @@
 #include <optional>
 #include <string>
 
-std::optional<std::string> read_file(const std::filesystem::path& path);
+#include "common/result.hpp"
+
+using novelfmt::Result;
+
+Result<std::optional<std::string>> read_file(const std::filesystem::path& path);

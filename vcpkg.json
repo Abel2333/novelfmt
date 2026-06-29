@@ -5,8 +5,9 @@
   "description": "Chinese text formatting and matching experiments.",
   "dependencies": [
     "cli11",
+    "fmt",
     "icu",
     "re2",
-    "fmt"
+    "tl-expected"
   ]
 }

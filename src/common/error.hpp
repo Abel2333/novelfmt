@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <string>
 #include <stdexcept>
 #include <utility>
 
@@ -21,6 +22,39 @@ template <typename... Args>
 template <typename... Args>
 [[noreturn]] void Throw(fmt::format_string<Args...> fmt_str, Args&&... args) {
     throw std::runtime_error(fmt::format(fmt_str, std::forward<Args>(args)...));
+}
+
+enum class ErrorKind { Cli, Io, Format, Internal };
+
+struct Error {
+    ErrorKind kind;
+    std::string message;
+    int exit_code = 1;
+};
+
+template <typename... Args>
+[[nodiscard]] Error MakeError(
+    ErrorKind kind,
+    fmt::format_string<Args...> fmt_str,
+    Args&&... args) {
+    return Error{
+        .kind = kind,
+        .message = fmt::format(fmt_str, std::forward<Args>(args)...),
+        .exit_code = 1,
+    };
+}
+
+template <typename... Args>
+[[nodiscard]] Error MakeError(
+    ErrorKind kind,
+    int exit_code,
+    fmt::format_string<Args...> fmt_str,
+    Args&&... args) {
+    return Error{
+        .kind = kind,
+        .message = fmt::format(fmt_str, std::forward<Args>(args)...),
+        .exit_code = exit_code,
+    };
 }
 
 } // namespace novelfmt
