@@ -3,5 +3,6 @@
 #include <string_view>
 
 #include "cli/options.hpp"
+#include "common/result.hpp"
 
-std::string run_pipeline(std::string_view text, const Options& options);
+novelfmt::Result<std::string> run_pipeline(std::string_view text, const Options& options);

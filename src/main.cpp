@@ -26,13 +26,15 @@ novelfmt::Result<void> run(int argc, char* argv[]) {
     NOVELFMT_TRY_ASSIGN(content, read_file(options.input_path));
 
     if (!content.has_value()) {
-        NOVELFMT_TRY(write_stdout(fmt::format("The file {} is empty", options.input_path.string())));
+        NOVELFMT_TRY(
+            write_stdout(fmt::format("The file {} is empty", options.input_path.string())));
         return {};
     }
 
     auto content_view = std::string_view(*content);
 
-    auto formatted_content = run_pipeline(content_view, options);
+    std::string formatted_content;
+    NOVELFMT_TRY_ASSIGN(formatted_content, run_pipeline(content_view, options));
 
     if (options.output_path.has_value()) {
         NOVELFMT_TRY(write_file(options.output_path.value(), formatted_content));

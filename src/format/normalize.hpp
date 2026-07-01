@@ -2,5 +2,6 @@
 
 #include <string>
 #include <string_view>
+#include "common/result.hpp"
 
-void normalize_to_nfc(std::string_view utf8_text, std::string& normalized_text);
+novelfmt::Result<void> normalize_to_nfc(std::string_view utf8_text, std::string& normalized_text);

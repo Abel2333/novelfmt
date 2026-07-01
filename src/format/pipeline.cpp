@@ -2,15 +2,17 @@
 #include <string_view>
 
 #include "cli/options.hpp"
+#include "common/result.hpp"
+#include "common/try.hpp"
 #include "format/formatter.hpp"
 #include "format/normalize.hpp"
 #include "format/sanitize.hpp"
 
-std::string run_pipeline(std::string_view raw_text, const Options& options) {
+novelfmt::Result<std::string> run_pipeline(std::string_view raw_text, const Options& options) {
     std::string work_text;
     work_text.reserve(raw_text.size());
 
-    normalize_to_nfc(raw_text, work_text);
+    NOVELFMT_TRY(normalize_to_nfc(raw_text, work_text));
     sanitize_text(work_text);
 
     auto work_view = std::string_view(work_text);
