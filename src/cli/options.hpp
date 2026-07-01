@@ -3,6 +3,8 @@
 #include <filesystem>
 #include <optional>
 
+namespace novelfmt {
+
 enum class HeadingMode { ChapterOnly, VolumeAndChapter };
 
 enum class ReportLevel { Silent, Summary, Verbose };
@@ -22,3 +24,5 @@ struct Options {
 
     ReportLevel report_level = ReportLevel::Summary;
 };
+
+} // namespace novelfmt

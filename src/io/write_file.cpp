@@ -22,9 +22,13 @@ novelfmt::Result<void> write_all(const std::filesystem::path& path, std::string_
 }
 } // namespace
 
-novelfmt::Result<void> write_file(const std::filesystem::path& path, std::string_view content) {
+namespace novelfmt {
+
+Result<void> write_file(const std::filesystem::path& path, std::string_view content) {
     return write_all(path, content);
 }
+
+namespace {
 
 std::filesystem::path make_temp_path(const std::filesystem::path& target) {
     auto temp = target;
@@ -32,8 +36,9 @@ std::filesystem::path make_temp_path(const std::filesystem::path& target) {
     return temp;
 }
 
-novelfmt::Result<void> atomic_write_file(const std::filesystem::path& path,
-                                         std::string_view content) {
+} // namespace
+
+Result<void> atomic_write_file(const std::filesystem::path& path, std::string_view content) {
     const auto temp_path = make_temp_path(path);
 
     auto write_result = write_all(temp_path, content);
@@ -59,7 +64,7 @@ novelfmt::Result<void> atomic_write_file(const std::filesystem::path& path,
     return {};
 }
 
-novelfmt::Result<void> write_stdout(std::string_view content) {
+Result<void> write_stdout(std::string_view content) {
     try {
         fmt::print("{}", content);
     } catch (const std::system_error& e) {
@@ -69,3 +74,5 @@ novelfmt::Result<void> write_stdout(std::string_view content) {
 
     return {};
 }
+
+} // namespace novelfmt

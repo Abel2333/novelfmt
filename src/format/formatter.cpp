@@ -4,6 +4,8 @@
 
 #include "format/heading.hpp"
 
+namespace novelfmt {
+
 void formatter_text(std::string_view text_view, std::string& result, const Options& options) {
     for (std::size_t start = 0; start < text_view.size();) {
         auto end = text_view.find('\n', start);
@@ -21,3 +23,5 @@ void formatter_text(std::string_view text_view, std::string& result, const Optio
         result += "\n\n";
     }
 }
+
+} // namespace novelfmt

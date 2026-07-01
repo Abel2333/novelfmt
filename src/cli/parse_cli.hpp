@@ -2,4 +2,8 @@
 
 #include "options.hpp"
 
-Options parse_cli(int argc, char *argv[]);
+namespace novelfmt {
+
+Options parse_cli(int argc, char* argv[]);
+
+} // namespace novelfmt

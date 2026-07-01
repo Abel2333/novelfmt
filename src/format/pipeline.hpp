@@ -5,4 +5,8 @@
 #include "cli/options.hpp"
 #include "common/result.hpp"
 
-novelfmt::Result<std::string> run_pipeline(std::string_view text, const Options& options);
+namespace novelfmt {
+
+Result<std::string> run_pipeline(std::string_view text, const Options& options);
+
+} // namespace novelfmt

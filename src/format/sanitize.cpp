@@ -4,6 +4,8 @@
 
 #include <re2/re2.h>
 
+namespace novelfmt {
+
 void sanitize_text(std::string& text) {
     // Normalize line endings: \r\n or bare \r -> \n
     RE2::GlobalReplace(&text, R"(\r\n|\r)", "\n");
@@ -23,3 +25,5 @@ void sanitize_text(std::string& text) {
     // Collapse 3+ existing ellipsis chars into 2
     RE2::GlobalReplace(&text, R"(…{3,})", "……");
 }
+
+} // namespace novelfmt

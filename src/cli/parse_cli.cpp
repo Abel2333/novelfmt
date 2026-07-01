@@ -6,6 +6,8 @@
 
 #include "CLI/CLI.hpp"
 
+namespace novelfmt {
+
 Options parse_cli(int argc, char* argv[]) {
 
     CLI::App app{"novelfmt - novel format tools"};
@@ -40,3 +42,5 @@ Options parse_cli(int argc, char* argv[]) {
 
     return options;
 }
+
+} // namespace novelfmt

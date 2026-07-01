@@ -7,7 +7,9 @@
 
 #include "common/result.hpp"
 
-novelfmt::Result<std::optional<std::string>> read_file(const std::filesystem::path& path) {
+namespace novelfmt {
+
+Result<std::optional<std::string>> read_file(const std::filesystem::path& path) {
     const auto file_size = std::filesystem::file_size(path);
 
     if (file_size == 0) {
@@ -30,3 +32,5 @@ novelfmt::Result<std::optional<std::string>> read_file(const std::filesystem::pa
     content.resize(static_cast<std::size_t>(file.gcount()));
     return content;
 }
+
+} // namespace novelfmt

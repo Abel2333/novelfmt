@@ -6,6 +6,8 @@
 
 #include "common/result.hpp"
 
-using novelfmt::Result;
+namespace novelfmt {
 
 Result<std::optional<std::string>> read_file(const std::filesystem::path& path);
+
+} // namespace novelfmt

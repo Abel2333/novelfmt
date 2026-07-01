@@ -11,7 +11,9 @@
 #include <unicode/urename.h>
 #include <unicode/utypes.h>
 
-novelfmt::Result<void> normalize_to_nfc(std::string_view utf8_text, std::string& normalized_text) {
+namespace novelfmt {
+
+Result<void> normalize_to_nfc(std::string_view utf8_text, std::string& normalized_text) {
     UErrorCode status = U_ZERO_ERROR;
     const icu::Normalizer2* normalizer = icu::Normalizer2::getNFCInstance(status);
 
@@ -33,3 +35,5 @@ novelfmt::Result<void> normalize_to_nfc(std::string_view utf8_text, std::string&
 
     return {};
 }
+
+} // namespace novelfmt

@@ -7,6 +7,8 @@
 #include <re2/re2.h>
 #include <re2/stringpiece.h>
 
+namespace novelfmt {
+
 std::optional<std::string> format_heading(std::string_view raw, HeadingMode mode) {
     static const re2::RE2 heading_regex(R"(^\s*()"
                                         R"(第[0-9一二三四五六七八九十百千两〇零]+[章节卷部回])"
@@ -29,3 +31,5 @@ std::optional<std::string> format_heading(std::string_view raw, HeadingMode mode
     }
     return fmt::format("{} {} {}", prefix, marker, title);
 }
+
+} // namespace novelfmt

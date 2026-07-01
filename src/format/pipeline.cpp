@@ -8,7 +8,9 @@
 #include "format/normalize.hpp"
 #include "format/sanitize.hpp"
 
-novelfmt::Result<std::string> run_pipeline(std::string_view raw_text, const Options& options) {
+namespace novelfmt {
+
+Result<std::string> run_pipeline(std::string_view raw_text, const Options& options) {
     std::string work_text;
     work_text.reserve(raw_text.size());
 
@@ -23,3 +25,5 @@ novelfmt::Result<std::string> run_pipeline(std::string_view raw_text, const Opti
 
     return result;
 }
+
+} // namespace novelfmt

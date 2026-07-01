@@ -20,28 +20,28 @@
 namespace {
 
 novelfmt::Result<void> run(int argc, char* argv[]) {
-    auto options = parse_cli(argc, argv);
+    auto options = novelfmt::parse_cli(argc, argv);
 
     std::optional<std::string> content;
-    NOVELFMT_TRY_ASSIGN(content, read_file(options.input_path));
+    NOVELFMT_TRY_ASSIGN(content, novelfmt::read_file(options.input_path));
 
     if (!content.has_value()) {
         NOVELFMT_TRY(
-            write_stdout(fmt::format("The file {} is empty", options.input_path.string())));
+            novelfmt::write_stdout(fmt::format("The file {} is empty", options.input_path.string())));
         return {};
     }
 
     auto content_view = std::string_view(*content);
 
     std::string formatted_content;
-    NOVELFMT_TRY_ASSIGN(formatted_content, run_pipeline(content_view, options));
+    NOVELFMT_TRY_ASSIGN(formatted_content, novelfmt::run_pipeline(content_view, options));
 
     if (options.output_path.has_value()) {
-        NOVELFMT_TRY(write_file(options.output_path.value(), formatted_content));
+        NOVELFMT_TRY(novelfmt::write_file(options.output_path.value(), formatted_content));
         return {};
     }
 
-    NOVELFMT_TRY(write_stdout(fmt::format("Formatted Content:\n {}", formatted_content)));
+    NOVELFMT_TRY(novelfmt::write_stdout(fmt::format("Formatted Content:\n {}", formatted_content)));
     return {};
 }
 
