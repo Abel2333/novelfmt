@@ -11,6 +11,14 @@ namespace novelfmt {
 template <class T>
 using Result = tl::expected<T, Error>;
 
+/**
+ * @brief Wraps a formatted error into `tl::unexpected`.
+ *
+ * @param kind High-level category of the failure.
+ * @param fmt_str Format string for the user-facing message.
+ * @param args Format arguments consumed by `fmt_str`.
+ * @return Unexpected result payload for `Result<T>`.
+ */
 template <typename... Args>
 [[nodiscard]] tl::unexpected<Error> MakeUnexpected(
     ErrorKind kind,
@@ -19,6 +27,15 @@ template <typename... Args>
     return tl::make_unexpected(MakeError(kind, fmt_str, std::forward<Args>(args)...));
 }
 
+/**
+ * @brief Wraps a formatted error with an explicit exit code into `tl::unexpected`.
+ *
+ * @param kind High-level category of the failure.
+ * @param exit_code Exit code to surface from `main`.
+ * @param fmt_str Format string for the user-facing message.
+ * @param args Format arguments consumed by `fmt_str`.
+ * @return Unexpected result payload for `Result<T>`.
+ */
 template <typename... Args>
 [[nodiscard]] tl::unexpected<Error> MakeUnexpected(
     ErrorKind kind,

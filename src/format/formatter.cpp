@@ -3,16 +3,12 @@
 #include <string>
 
 #include "format/heading.hpp"
+#include "format/paragraphs.hpp"
 
 namespace novelfmt {
 
 void formatter_text(std::string_view text_view, std::string& result, const Options& options) {
-    for (std::size_t start = 0; start < text_view.size();) {
-        auto end = text_view.find('\n', start);
-        auto line = text_view.substr(start, (end == std::string_view::npos ? end : end - start));
-
-        start = (end == std::string_view::npos ? text_view.size() : end + 1);
-
+    for (const auto line : split_paragraphs(text_view)) {
         auto formatted_line = format_heading(line, options.heading_mode);
 
         if (formatted_line.has_value()) {
