@@ -20,6 +20,11 @@ Options parse_cli(int argc, char* argv[]) {
 
     app.add_option("input", input_path, "input file path")->required()->check(CLI::ExistingFile);
 
+    std::string heading_mode_str = "chapter";
+    app.add_option("--heading-mode", heading_mode_str,
+                   "heading level: chapter (##) or volume-chapter (###)")
+        ->check(CLI::IsMember{{"chapter", "volume-chapter"}});
+
     app.add_option("-o,--output", output_path, "output file path (default is stdout)");
     app.add_flag("--in-place", in_place, "rewrite the input file");
     app.add_flag("--dry-run", dry_run, "parse and report without writing output");
@@ -39,6 +44,12 @@ Options parse_cli(int argc, char* argv[]) {
     }
     options.in_place = in_place;
     options.dry_run = dry_run;
+
+    if (heading_mode_str == "chapter") {
+        options.heading_mode = HeadingMode::ChapterOnly;
+    } else if (heading_mode_str == "volume-chapter") {
+        options.heading_mode = HeadingMode::VolumeAndChapter;
+    }
 
     return options;
 }

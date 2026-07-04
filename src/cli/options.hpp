@@ -17,7 +17,7 @@ struct Options {
     bool dry_run = false;
 
     bool detect_titles = true;
-    HeadingMode heading_mode = HeadingMode::VolumeAndChapter;
+    HeadingMode heading_mode = HeadingMode::ChapterOnly;
 
     bool normalize_quotes = true;
     bool normalize_line_endings = true;
