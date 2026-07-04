@@ -19,6 +19,8 @@ add_executable(novelfmt
     src/format/heading.cpp
     src/format/normalize.cpp
     src/format/sanitize.cpp
+    src/format/paragraphs.cpp
+    src/format/quote.cpp
     src/format/pipeline.cpp
     src/format/formatter.cpp
     src/io/read_file.cpp
