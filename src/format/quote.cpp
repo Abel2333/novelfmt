@@ -58,7 +58,7 @@ bool is_any_quote_candidate(UChar32 ch) {
  * @param quote_state Current paragraph-local quote state.
  * @return Normalized quote glyph to append to the output buffer.
  */
-auto classify_quote(UChar32 ch, QuoteState& quote_state) -> UChar32 {
+UChar32 classify_quote(UChar32 ch, QuoteState& quote_state) {
     if (quote_state == QuoteState::Outside && is_primary_quote_candidate(ch)) {
         quote_state = QuoteState::InsidePrimary;
         return kPrimaryOpen;
@@ -99,7 +99,7 @@ auto classify_quote(UChar32 ch, QuoteState& quote_state) -> UChar32 {
  * @param paragraph Raw UTF-8 paragraph text.
  * @return Normalized paragraph text.
  */
-auto normalize_paragraph(std::string_view paragraph) -> std::string {
+std::string normalize_paragraph(std::string_view paragraph) {
     QuoteState quote_state = QuoteState::Outside;
     icu::UnicodeString output;
 

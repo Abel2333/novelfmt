@@ -14,6 +14,6 @@ namespace novelfmt {
  * @param text Source text to partition.
  * @return Views into `text`, one per logical paragraph.
  */
-auto split_paragraphs(std::string_view text) -> std::vector<std::string_view>;
+std::vector<std::string_view> split_paragraphs(std::string_view text);
 
 } // namespace novelfmt

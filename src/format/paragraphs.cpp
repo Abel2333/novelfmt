@@ -5,7 +5,7 @@
 
 namespace novelfmt {
 
-auto split_paragraphs(std::string_view text) -> std::vector<std::string_view> {
+std::vector<std::string_view> split_paragraphs(std::string_view text) {
     std::vector<std::string_view> paragraphs;
 
     for (std::size_t start = 0; start < text.size();) {
