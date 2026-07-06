@@ -15,11 +15,11 @@ Normalize mixed-source quote marks in novel text into Chinese corner quotes:
 
 Target cases include:
 
-- Complete source quotes: `"He said I am here"` -> `「He said I am here」`
-- Missing opening quote: `He said I am here"` -> `「He said I am here」`
-- Missing closing quote: `"He said I am here` -> `「He said I am here」`
-- No source quotes, but semantically direct speech: `He said I am here` -> `「He said I am here」`
-- Nested quotes: `"He said 'hello'"` -> `「He said『hello』」`
+- Complete source quotes: `"宝玉道：'颦颦二字极妙。'"` -> `「宝玉道：『颦颦二字极妙。』」`
+- Missing opening quote: `宝玉道：颦颦二字极妙。"` -> `「宝玉道：颦颦二字极妙。」`
+- Missing closing quote: `"宝玉道：颦颦二字极妙。` -> `「宝玉道：颦颦二字极妙。」`
+- No source quotes, but semantically direct speech: `宝玉道：颦颦二字极妙。` -> `「宝玉道：颦颦二字极妙。」`
+- Nested quotes: `"宝玉道：'颦颦'二字极妙。"` -> `「宝玉道：『颦颦』二字极妙。」`
 - Multi-paragraph dialogue: speech opened in one paragraph and continued in the next
 
 ### 1.2 Limitations of the Current Rule-Based Approach
@@ -56,7 +56,7 @@ Advantages:
 For example:
 
 ```text
-He said I am here
+颦颦二字极妙。
 ```
 
 This may be:
@@ -91,9 +91,21 @@ This is not a general nested NER setup. It is a **linear tag scheme specialized 
 Example:
 
 ```text
-Normalized text: 「He said『hello』ah」
-Content chars:   He said hello ah
-Labels:          B1 I1 B2 E2 E1
+Normalized text: 宝玉道：「我送妹妹一妙字。」
+Content chars:   宝玉道：我送妹妹一妙字。
+Labels:          O  O  O  O  B1 I1 I1 I1 I1 I1 I1 E1
+```
+
+```text
+Normalized text: 宝玉笑道：「我送妹妹一妙字，莫若『颦颦』二字极妙。」
+Content chars:   宝玉笑道：我送妹妹一妙字，莫若颦颦二字极妙。
+Labels:          O  O  O  O  B1 I1 I1 I1 I1 I1 I1 I1 I1 I1 B2 E2 I1 I1 I1 I1 E1
+```
+
+```text
+Normalized text: 宝玉道：「送『她』二字。」
+Content chars:   宝玉道：送她二字。
+Labels:          O  O  O  O  B1 S2 I1 I1 E1
 ```
 
 Meaning:
@@ -112,19 +124,118 @@ If arbitrary-depth nesting is ever required, the modeling approach should be cha
 
 The CRF should strongly constrain illegal transitions to avoid impossible label sequences.
 
-At minimum:
+We derive constraints from three nesting states:
 
-- `O` must not jump directly to `I1 / E1 / I2 / E2`
-- `B1` should only transition to `I1 / E1 / B2 / S2`
-- `B2` should only transition to `I2 / E2`
-- `E2` should only return to the primary span or end it
+- `O`: outside any quote
+- `P`: inside a primary quote `「」`
+- `S`: inside a secondary quote `『』` (which is always nested inside a primary quote)
 
-Besides the transition matrix itself, it is also worth initializing:
+Each label's meaning in terms of state change:
 
-- start transitions
-- end transitions
+| Label | Meaning |
+|---|---|
+| `O` | stay in `O` |
+| `B1` | enter `P` from `O` |
+| `I1` | stay in `P` |
+| `E1` | leave `P` back to `O` |
+| `S1` | enter and immediately leave `P` (single-character primary span) |
+| `B2` | enter `S` from `P` |
+| `I2` | stay in `S` |
+| `E2` | leave `S` back to `P` |
+| `S2` | enter and immediately leave `S` (single-character secondary span) |
 
-Otherwise sentence-initial and sentence-final illegal labels may still appear.
+#### Label-to-label transition table
+
+From \\ to:
+
+| | `O` | `B1` | `I1` | `E1` | `S1` | `B2` | `I2` | `E2` | `S2` |
+|---|---|---|---|---|---|---|---|---|---|
+| `START` | ✓ | ✓ | | | ✓ | | | | |
+| `O` | ✓ | ✓ | | | ✓ | | | | |
+| `B1` | | | ✓ | ✓ | | ✓ | | | ✓ |
+| `I1` | | | ✓ | ✓ | | ✓ | | | ✓ |
+| `E1` | ✓ | ✓ | | | ✓ | | | | |
+| `S1` | ✓ | ✓ | | | ✓ | | | | |
+| `B2` | | | | | | | ✓ | ✓ | |
+| `I2` | | | | | | | ✓ | ✓ | |
+| `E2` | | | ✓ | ✓ | | | | | |
+| `S2` | | | ✓ | ✓ | | | | | |
+
+#### Start-of-paragraph constraints
+
+Because the global quote state can carry across paragraphs, the first label of a paragraph is constrained by the incoming state:
+
+| Incoming state | Allowed first labels |
+|---|---|
+| `Outside` | `O`, `B1`, `S1` |
+| `InsidePrimary` | `I1`, `E1`, `B2`, `S2` |
+
+Labels that would start a secondary span (`B2`, `S2`) are only allowed when the paragraph begins inside a primary quote. Labels that would start a primary span (`B1`, `S1`) are only allowed when the paragraph begins outside any quote.
+
+#### End-of-paragraph constraints
+
+A paragraph may end with an unclosed primary quote (to support multi-paragraph dialogue), but secondary quotes are **not allowed to span paragraphs**. Therefore:
+
+Allowed final labels: `O`, `E1`, `S1`, `I1`, `E2`, `S2`
+
+Disallowed final labels:
+
+- `B1`: starts a primary span but never closes or continues it
+- `B2`: starts a secondary span but never closes or continues it
+- `I2`: leaves a secondary span open across a paragraph boundary
+
+These end constraints are enforced by setting the corresponding CRF end-transition scores to negative infinity.
+
+#### Why secondary quotes cannot span paragraphs
+
+This is a deliberate simplification. In Chinese novel convention, secondary quotes `『』` are used for nested speech or emphasis inside a primary quote. If a secondary quote were allowed to span a paragraph boundary, the reader would lose track of which level is open. Keeping secondary spans paragraph-local makes both the model and the merge step simpler and more robust.
+
+### 3.4 Cross-Paragraph Dialogue Handling
+
+Multi-paragraph dialogue is one of the main motivations for the ML approach. The design must respect Chinese punctuation convention for corner quotes.
+
+#### Target output format
+
+For straight quotes `" "` the convention is to repeat the opening mark at each paragraph:
+
+```text
+"第一段话……
+"第二段话……
+"第三段话的结尾。"
+```
+
+For target corner quotes `「」`, the convention is different: only the first paragraph gets the opening mark, only the last paragraph gets the closing mark, and intermediate paragraphs carry no quote marks at all:
+
+```text
+「第一段话……
+第二段话……
+第三段话的结尾。」
+```
+
+The ML model and merge step must produce this format.
+
+#### Global state machine
+
+Maintain one global state across paragraphs:
+
+```cpp
+enum class QuoteState { Outside, InsidePrimary };
+```
+
+Note that there is no `InsideSecondary` global state because secondary quotes are not allowed to span paragraphs (see Section 3.3).
+
+For each paragraph:
+
+1. Apply the start-of-paragraph constraints from Section 3.3 based on the incoming `QuoteState`.
+2. Run the CRF decode to obtain the label sequence.
+3. Apply the end-of-paragraph constraints from Section 3.3. If the paragraph ends in `I1`, keep `QuoteState` as `InsidePrimary`; otherwise set it to `Outside`.
+4. During merge, insert normalized quote marks according to the predicted span boundaries:
+   - Insert `「` at any `B1` or `S1` predicted while `QuoteState` is `Outside`.
+   - Insert `」` at any `E1` or `S1` that brings `QuoteState` back to `Outside`.
+   - Insert `『` at any `B2` or `S2`.
+   - Insert `』` at any `E2` or `S2`.
+
+Because intermediate paragraphs in a multi-paragraph dialogue begin with `QuoteState == InsidePrimary`, their first predicted label will normally be `I1`, and no opening quote mark is inserted at their start. This produces the correct `「... / ... / ...」` layout.
 
 ## 4. Model Architecture
 
@@ -283,11 +394,12 @@ If supervision is character-level, aggregation should preferably resolve back to
 
 ### 8.1 Merge Strategy
 
-The merge step should follow three rules:
+The merge step should follow four rules:
 
 1. discard all source quote characters
 2. insert normalized quote marks only at predicted span boundaries
 3. preserve all other source content as-is
+4. maintain the global `Outside / InsidePrimary` state across paragraphs so that intermediate paragraphs in a multi-paragraph dialogue receive no opening quote mark
 
 This high-level logic is sound.
 
@@ -393,6 +505,8 @@ Goals:
 |---|---|---|
 | Pretrained model | `hfl/chinese-roberta-wwm-ext` | mature Chinese base-scale model, stable and deployable |
 | Label set | two-level BIOES (9 labels) | matches the fixed two-level quote structure |
+| Cross-paragraph dialogue | global `Outside / InsidePrimary` state + per-paragraph CRF | respects Chinese corner-quote convention |
+| Secondary quote span | paragraph-local only | avoids ambiguity at paragraph boundaries |
 | Input construction | filter source quotes before span labeling | more robust to noisy source punctuation |
 | Supervision granularity | character-level labels with token alignment | avoids the false "one char = one token" assumption |
 | Long-text strategy | sentence-boundary chunking + sliding-window fallback | preserve semantics first, preserve coverage second |
@@ -414,5 +528,6 @@ Before implementation starts, a few points must be fixed and made explicit:
 2. preserve the mapping from filtered characters back to original positions
 3. define the tokenizer deployment strategy
 4. build a baseline on damaged-quote samples before attempting full no-quote recovery
+5. enforce paragraph-local secondary quotes and global state for cross-paragraph primary quotes
 
 If the project follows this revised plan, the implementation path will be more stable than directly following the original draft.
